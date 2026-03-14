@@ -1,0 +1,7 @@
+[console_scripts]
+paperscout-cite = paperscout.cli:main_cite
+paperscout-estimate = paperscout.cli:main_estimate
+paperscout-help = paperscout.cli:main_help
+paperscout-preview = paperscout.cli:main_preview
+paperscout-save = paperscout.cli:main_save
+paperscout-validate = paperscout.cli:main_validate
