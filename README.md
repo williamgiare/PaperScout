@@ -15,7 +15,7 @@ It works from the command line, from Python, and inside notebooks, but the workf
 Install from the project root:
 
 ```bash
-python3 -m pip install -e .
+pip install -e .
 ```
 
 Then try a search:
@@ -82,7 +82,7 @@ Example:
 paperscout-preview \
   --keyword CMB \
   --keyword Spectra \
-  --author White \ 
+  --author White \
   --collaboration Planck \
   --from 2013 \
   --to 2025
