@@ -109,9 +109,9 @@ saved = save(
 
 ## Project Docs
 
-- If you want the technical overview, internal architecture, and module breakdown, see [`docs/README.md`](/Users/williamgiare/codes/GitHub/PaperScout/docs/README.md). That document also explains the filter semantics in more detail.
+- If you want the technical overview, internal architecture, and module breakdown, see `docs/README.md`. That document also explains the filter semantics in more detail.
 
-- For additional information see [`examples/example.ipynb`](/Users/williamgiare/codes/GitHub/PaperScout/examples/example.ipynb)
+- For additional information see `examples/example.ipynb`
 
 ## Development
 
