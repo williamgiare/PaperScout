@@ -3,3 +3,5 @@ Name: paperscout
 Version: 0.1.0
 Summary: Search INSPIRE and export BibTeX results.
 Requires-Python: >=3.11
+License-File: LICENSE
+Dynamic: license-file

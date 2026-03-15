@@ -1,6 +1,8 @@
+LICENSE
 README.md
 pyproject.toml
 paperscout/__init__.py
+paperscout/api.py
 paperscout/bibtex_exporter.py
 paperscout/cite.py
 paperscout/cli.py
@@ -15,5 +17,6 @@ paperscout.egg-info/SOURCES.txt
 paperscout.egg-info/dependency_links.txt
 paperscout.egg-info/entry_points.txt
 paperscout.egg-info/top_level.txt
+tests/test_api.py
 tests/test_cite.py
 tests/test_text_handling.py
