@@ -1,6 +1,6 @@
 """PaperScout package."""
 
-from .api import SaveResult, estimate, preview, save
+from .api import ListResult, SaveResult, estimate, list_papers, preview, save
 from .model import (
     DateRange,
     OutputConfig,
@@ -17,12 +17,14 @@ from .inspire_client import (
     InspirePage,
     InspirePreflightResult,
 )
+from .listing import ListedPaper, format_paper_list, format_paper_listing, save_paper_list
 from .query_builder import BuiltQuery, InspireQueryBuilder
 from .selector import ExecutionPlan, FetchStrategy, PreflightSummary, SearchSelector
 from .service import (
     PreparedSearch,
     SearchEstimateResult,
     SearchExecutionResult,
+    SearchListResult,
     PaperScoutService,
 )
 
@@ -38,10 +40,15 @@ __all__ = [
     "InspirePage",
     "InspirePreflightResult",
     "InspireQueryBuilder",
+    "ListedPaper",
+    "ListResult",
     "OutputConfig",
     "SaveResult",
     "cite",
     "estimate",
+    "format_paper_list",
+    "format_paper_listing",
+    "list_papers",
     "parse_bibtex_file",
     "parse_bibtex_text",
     "PaperScoutService",
@@ -50,10 +57,12 @@ __all__ = [
     "SearchEstimateResult",
     "SearchField",
     "SearchFilters",
+    "SearchListResult",
     "SearchLimits",
     "SearchRequest",
     "SearchExecutionResult",
     "SearchSelector",
     "preview",
+    "save_paper_list",
     "save",
 ]

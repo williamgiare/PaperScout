@@ -222,6 +222,45 @@ class InspireClient:
 
         return "\n\n".join(chunks)
 
+    def fetch_all_hits(
+        self,
+        built_query: BuiltQuery,
+        *,
+        total_results: int,
+        page_size: int,
+        fields: tuple[str, ...] = (),
+        sort: str | None = "mostrecent",
+    ) -> tuple[dict[str, Any], ...]:
+        """Fetch and concatenate all JSON hits for a query."""
+
+        if total_results < 0:
+            raise ValueError("total_results cannot be negative.")
+
+        if total_results == 0:
+            return ()
+
+        if not 1 <= page_size <= 1_000:
+            raise ValueError("page_size must be between 1 and 1000.")
+
+        hits: list[dict[str, Any]] = []
+        remaining = total_results
+        page = 1
+
+        while remaining > 0:
+            current_page_size = min(page_size, remaining)
+            payload = self.fetch_json_page(
+                built_query,
+                page=page,
+                size=current_page_size,
+                fields=fields,
+                sort=sort,
+            )
+            hits.extend(payload.hits)
+            remaining -= current_page_size
+            page += 1
+
+        return tuple(hits)
+
     def _request_json(self, *, params: dict[str, Any]) -> dict[str, Any]:
         text = self._request_text(params=params, accept_header=_JSON_ACCEPT_HEADER)
         try:

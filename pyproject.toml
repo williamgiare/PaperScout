@@ -15,6 +15,7 @@ paperscout-save = "paperscout.cli:main_save"
 paperscout-validate = "paperscout.cli:main_validate"
 paperscout-help = "paperscout.cli:main_help"
 paperscout-cite = "paperscout.cli:main_cite"
+paperscout-list = "paperscout.cli:main_list"
 
 [tool.setuptools]
 packages = ["paperscout"]

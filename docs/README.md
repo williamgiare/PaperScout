@@ -39,6 +39,7 @@ These modules are the public entry points.
 
 - `paperscout-preview`
 - `paperscout-estimate`
+- `paperscout-list`
 - `paperscout-save`
 - `paperscout-validate`
 - `paperscout-help`

@@ -7,6 +7,7 @@ paperscout/bibtex_exporter.py
 paperscout/cite.py
 paperscout/cli.py
 paperscout/inspire_client.py
+paperscout/listing.py
 paperscout/model.py
 paperscout/query_builder.py
 paperscout/selector.py
@@ -19,4 +20,5 @@ paperscout.egg-info/entry_points.txt
 paperscout.egg-info/top_level.txt
 tests/test_api.py
 tests/test_cite.py
+tests/test_listing.py
 tests/test_text_handling.py

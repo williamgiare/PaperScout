@@ -40,11 +40,18 @@ paperscout-save \
   --output results.bib
 ```
 
+List the matching papers in a readable text form:
+
+```bash
+paperscout-list --keyword inflation --author Starobinsky --from 2022
+```
+
 ## Main Commands
 
 - `paperscout-preview`: build the query and show the preview URLs
 - `paperscout-estimate`: ask INSPIRE how many papers match
 - `paperscout-save`: download and save matching BibTeX entries
+- `paperscout-list`: print a readable list with title, authors, and arXiv or DOI when available
 - `paperscout-validate`: validate inputs locally without contacting INSPIRE
 - `paperscout-help`: print the built-in help text
 - `paperscout-cite`: turn a `.bib` file into a LaTeX `\cite{...}` command

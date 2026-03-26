@@ -7,11 +7,13 @@ from pathlib import Path
 
 from .bibtex_exporter import BibtexExporter
 from .cite import cite
+from .listing import format_paper_list
 from .service import (
     PaperScoutService,
     PreparedSearch,
     SearchEstimateResult,
     SearchExecutionResult,
+    SearchListResult,
 )
 from .validators import build_search_request
 
@@ -25,6 +27,14 @@ class SaveResult:
 
     execution_result: SearchExecutionResult
     saved_path: Path | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ListResult:
+    """Rendered plain-text list result for interactive usage."""
+
+    search_result: SearchListResult
+    rendered_text: str
 
 
 def preview(
@@ -131,6 +141,54 @@ def save(
 
     saved_path = BibtexExporter().save(execution_result.bibtex_content, request.output)
     return SaveResult(execution_result=execution_result, saved_path=saved_path)
+
+
+def list_papers(
+    *,
+    keywords: list[str] | tuple[str, ...] | None = None,
+    author: str | list[str] | tuple[str, ...] | None = None,
+    collaboration: str | None = None,
+    min_citations: int | None = None,
+    from_year: int | None = None,
+    to_year: int | None = None,
+    page_size: int = 250,
+    warning_threshold: int = 1_000,
+    hard_limit: int = 5_000,
+    force: bool = False,
+    max_authors: int = 3,
+    show_citations: bool = False,
+) -> ListResult:
+    """Return a plain-text listing of matching papers for notebooks or scripts."""
+
+    request = _build_interactive_request(
+        keywords=keywords,
+        author=author,
+        collaboration=collaboration,
+        min_citations=min_citations,
+        from_year=from_year,
+        to_year=to_year,
+        page_size=page_size,
+        warning_threshold=warning_threshold,
+        hard_limit=hard_limit,
+    )
+    search_result = PaperScoutService().list_search(request, force=force)
+
+    if search_result.execution_plan.should_abort:
+        warnings_text = " ".join(search_result.warnings)
+        raise RuntimeError(f"Search aborted before listing results. {warnings_text}".strip())
+
+    if search_result.execution_plan.requires_confirmation:
+        warnings_text = " ".join(search_result.warnings)
+        raise RuntimeError(
+            f"Search requires confirmation or force. {warnings_text}".strip()
+        )
+
+    rendered_text = format_paper_list(
+        search_result.papers,
+        max_authors=max_authors,
+        show_citations=show_citations,
+    )
+    return ListResult(search_result=search_result, rendered_text=rendered_text)
 
 
 def _build_interactive_request(

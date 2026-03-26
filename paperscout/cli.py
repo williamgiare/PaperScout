@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .bibtex_exporter import BibtexExporter
 from .cite import cite
+from .listing import format_paper_list, save_paper_list
 from .service import PaperScoutService
 from .validators import build_search_request
 
@@ -33,6 +34,11 @@ Available actions:
 - paperscout-validate
   Validate CLI inputs locally and show the normalized query that would be used.
   No network requests are made and no file is written.
+
+- paperscout-list
+  Build the query, run the INSPIRE preflight, fetch matching metadata, and print
+  a readable line per paper with title, authors, and an arXiv or DOI identifier
+  when available. It can also save the list to a .txt file.
 
 - paperscout-cite
   Read a `.bib` file and print a LaTeX `\\cite{...}` command.
@@ -117,6 +123,7 @@ Typical examples:
 - paperscout-estimate --keyword inflation --author Starobinsky --from 2022
 - paperscout-save --keyword inflation --keyword model --author Starobinsky --from 2022 --output starobinsky.bib
 - paperscout-validate --collaboration Planck --min-citations 50
+- paperscout-list --keyword inflation --author Starobinsky --from 2022
 - paperscout-cite linde.bib
 """
 
@@ -126,6 +133,7 @@ def build_parser(
     *,
     require_output: bool,
     include_force: bool,
+    output_help: str = "Destination output file.",
 ) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog=program_name,
@@ -167,7 +175,7 @@ def build_parser(
     parser.add_argument(
         "--output",
         required=require_output,
-        help="Destination .bib file.",
+        help=output_help,
     )
     parser.add_argument(
         "--overwrite",
@@ -198,6 +206,27 @@ def build_parser(
             action="store_true",
             help="Proceed despite warning and hard-limit safeguards.",
         )
+    return parser
+
+
+def build_list_parser() -> argparse.ArgumentParser:
+    parser = build_parser(
+        "paperscout-list",
+        require_output=False,
+        include_force=True,
+        output_help="Optional destination .txt file for the rendered listing.",
+    )
+    parser.add_argument(
+        "--max-authors",
+        type=int,
+        default=3,
+        help="Maximum number of authors to show before appending 'et al.'.",
+    )
+    parser.add_argument(
+        "--show-citations",
+        action="store_true",
+        help="Include citation counts when INSPIRE provides them.",
+    )
     return parser
 
 
@@ -258,6 +287,7 @@ def main_save(argv: list[str] | None = None) -> int:
         "paperscout-save",
         require_output=True,
         include_force=True,
+        output_help="Destination .bib file.",
     ).parse_args(argv)
     request = _build_request_from_args(args, require_output=True)
     service = PaperScoutService()
@@ -312,6 +342,58 @@ def main_validate(argv: list[str] | None = None) -> int:
     print()
     print("Normalized query:")
     print(prepared.human_query)
+    return 0
+
+
+def main_list(argv: list[str] | None = None) -> int:
+    args = build_list_parser().parse_args(argv)
+    request = _build_request_from_args(args, require_output=False)
+    service = PaperScoutService()
+
+    prepared = service.prepare_search(request)
+    print("Query:")
+    print(prepared.human_query)
+    print()
+    print("Preview API URL:")
+    print(prepared.preview_api_url)
+    print()
+
+    result = service.list_search(request, force=args.force)
+
+    if result.warnings:
+        print("Warnings:")
+        for warning in result.warnings:
+            print(f"- {warning}")
+        print()
+
+    if result.execution_plan.should_abort:
+        print("Search aborted before fetching results.")
+        return 2
+
+    if result.execution_plan.requires_confirmation:
+        print("Search requires confirmation. Rerun with --force to continue.")
+        return 2
+
+    rendered_list = format_paper_list(
+        result.papers,
+        max_authors=args.max_authors,
+        show_citations=args.show_citations,
+    )
+
+    if args.output:
+        output_path = save_paper_list(
+            rendered_list,
+            args.output,
+            overwrite=args.overwrite,
+        )
+        print(rendered_list)
+        print()
+        print(
+            f"Saved {result.execution_plan.total_results} paper(s) to {output_path}"
+        )
+        return 0
+
+    print(rendered_list)
     return 0
 
 

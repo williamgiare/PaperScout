@@ -7,7 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from paperscout.api import estimate, preview, save
+from paperscout.api import estimate, list_papers, preview, save
 
 
 class ApiTests(unittest.TestCase):
@@ -30,6 +30,38 @@ class ApiTests(unittest.TestCase):
 
         self.assertIs(result, expected)
         service_cls.return_value.estimate_search.assert_called_once()
+
+    @patch("paperscout.api.PaperScoutService")
+    def test_list_papers_returns_rendered_text(self, service_cls) -> None:
+        search_result = SimpleNamespace(
+            execution_plan=SimpleNamespace(
+                should_abort=False,
+                requires_confirmation=False,
+                total_results=1,
+            ),
+            warnings=(),
+            papers=(
+                SimpleNamespace(
+                    title="A title",
+                    authors=("Author A",),
+                    identifier="arXiv:1234.5678",
+                    citations=10,
+                ),
+            ),
+        )
+        service_cls.return_value.list_search.return_value = search_result
+
+        result = list_papers(
+            keywords=["inflation"],
+            author=["Starobinsky"],
+            show_citations=True,
+        )
+
+        self.assertEqual(
+            result.rendered_text,
+            '- "A title" (Author A) arXiv:1234.5678 (cit: 10)',
+        )
+        service_cls.return_value.list_search.assert_called_once()
 
     @patch("paperscout.api.BibtexExporter")
     @patch("paperscout.api.PaperScoutService")

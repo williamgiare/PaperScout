@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from .inspire_client import InspireClient
+from .listing import ListedPaper, build_listed_papers
 from .model import SearchRequest
 from .query_builder import BuiltQuery, InspireQueryBuilder
 from .selector import ExecutionPlan, SearchSelector
@@ -54,6 +55,16 @@ class SearchEstimateResult:
 
     prepared_search: PreparedSearch
     execution_plan: ExecutionPlan
+    warnings: tuple[str, ...] = field(default_factory=tuple)
+
+
+@dataclass(frozen=True, slots=True)
+class SearchListResult:
+    """Search result with normalized paper metadata for listing output."""
+
+    prepared_search: PreparedSearch
+    execution_plan: ExecutionPlan
+    papers: tuple[ListedPaper, ...] = field(default_factory=tuple)
     warnings: tuple[str, ...] = field(default_factory=tuple)
 
 
@@ -154,5 +165,41 @@ class PaperScoutService:
         return SearchEstimateResult(
             prepared_search=prepared_search,
             execution_plan=execution_plan,
+            warnings=warnings,
+        )
+
+    def list_search(
+        self,
+        request: SearchRequest,
+        *,
+        force: bool = False,
+    ) -> SearchListResult:
+        """Run preflight and fetch metadata suitable for terminal listings."""
+
+        estimate_result = self.estimate_search(request, force=force)
+        prepared_search = estimate_result.prepared_search
+        execution_plan = estimate_result.execution_plan
+        warnings = estimate_result.warnings
+
+        if not execution_plan.can_execute or execution_plan.requires_confirmation:
+            return SearchListResult(
+                prepared_search=prepared_search,
+                execution_plan=execution_plan,
+                papers=(),
+                warnings=warnings,
+            )
+
+        hits = self._inspire_client.fetch_all_hits(
+            prepared_search.built_query,
+            total_results=execution_plan.total_results,
+            page_size=request.limits.page_size,
+            fields=("titles", "authors", "arxiv_eprints", "dois", "citation_count"),
+            sort="mostrecent",
+        )
+
+        return SearchListResult(
+            prepared_search=prepared_search,
+            execution_plan=execution_plan,
+            papers=build_listed_papers(hits),
             warnings=warnings,
         )
