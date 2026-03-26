@@ -123,16 +123,23 @@ class InspireQueryBuilder:
         if not filters.authors:
             return None
         author_clauses = [
-            self._join_clauses(
-                [
-                    f'a:"{self._escape_literal(variant)}"'
-                    for variant in self._literal_variants(author)
-                ],
-                operator="or",
-            )
+            self._build_single_author_clause(author)
             for author in filters.authors
         ]
         return self._join_clauses(author_clauses, operator="and")
+
+    def _build_single_author_clause(self, author: str) -> str:
+        author_alternative_clauses = [
+            self._join_clauses(
+                [
+                    f'a:"{self._escape_literal(variant)}"'
+                    for variant in self._literal_variants(alternative)
+                ],
+                operator="or",
+            )
+            for alternative in self._or_expression_alternatives(author, field_name="author")
+        ]
+        return self._join_clauses(author_alternative_clauses, operator="or")
 
     def _build_collaboration_clause(self, filters: SearchFilters) -> str | None:
         if filters.collaboration is None:
@@ -199,14 +206,17 @@ class InspireQueryBuilder:
         return tuple(dict.fromkeys(variants))
 
     def _keyword_alternatives(self, keyword: str) -> tuple[str, ...]:
-        if "|" not in keyword:
-            return (keyword,)
+        return self._or_expression_alternatives(keyword, field_name="keyword")
+
+    def _or_expression_alternatives(self, value: str, *, field_name: str) -> tuple[str, ...]:
+        if "|" not in value:
+            return (value,)
 
         alternatives = tuple(
             alternative.strip()
-            for alternative in keyword.split("|")
+            for alternative in value.split("|")
             if alternative.strip()
         )
         if not alternatives:
-            raise ValueError("Keyword OR groups cannot be empty.")
+            raise ValueError(f"{field_name.capitalize()} OR groups cannot be empty.")
         return alternatives

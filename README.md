@@ -78,7 +78,8 @@ At least one primary filter is required:
 - repeated `--keyword`: combined with logical `AND`, so all given keyword groups must match
 - `|` inside a single `--keyword`: combined with logical `OR`, so one of the alternatives can match
 - `--author`: require a specific author in the paper metadata
-- repeated `--author`: combined with logical `AND`, so all given authors must be present
+- repeated `--author`: combined with logical `AND`, so all given author groups must be present
+- `|` inside a single `--author`: combined with logical `OR`, so one of the alternative authors can match
 - `--collaboration`: require a specific collaboration name
 - `--from`: set the inclusive starting year
 - `--to`: set the inclusive ending year
@@ -109,6 +110,19 @@ So the rule is:
 
 - different `--keyword` entries are combined with `AND`
 - alternatives inside one `--keyword` are combined with `OR`
+
+The same logic also works for authors:
+
+```bash
+paperscout-preview \
+  --author "Linde|Starobinsky" \
+  --author "Guth|Mukhanov"
+```
+
+So for authors too:
+
+- different `--author` entries are combined with `AND`
+- alternatives inside one `--author` are combined with `OR`
 
 ## Python API
 

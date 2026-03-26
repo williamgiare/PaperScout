@@ -39,7 +39,11 @@ def _normalize_keywords(
 
     for raw_keyword in keywords:
         normalized = _normalize_text_value(raw_keyword, field_name="keyword")
-        normalized = _normalize_keyword_expression(normalized)
+        normalized = _normalize_or_expression(
+            normalized,
+            field_name="keyword",
+            error_label="keyword alternative",
+        )
         dedupe_key = normalized.casefold()
         if dedupe_key in seen:
             continue
@@ -53,19 +57,32 @@ def _normalize_keywords(
     return tuple(normalized_keywords)
 
 
-def _normalize_keyword_expression(value: str) -> str:
+def _normalize_or_expression(
+    value: str,
+    *,
+    field_name: str,
+    error_label: str,
+) -> str:
     if "|" not in value:
         return value
 
-    normalized_parts = [_normalize_keyword_part(part) for part in value.split("|")]
+    normalized_parts = [
+        _normalize_or_expression_part(part, field_name=field_name, error_label=error_label)
+        for part in value.split("|")
+    ]
     return " | ".join(normalized_parts)
 
 
-def _normalize_keyword_part(value: str) -> str:
+def _normalize_or_expression_part(
+    value: str,
+    *,
+    field_name: str,
+    error_label: str,
+) -> str:
     normalized = normalize("NFC", " ".join(value.split()).strip())
     if not normalized:
         raise ValueError(
-            "Each keyword alternative separated by '|' must contain non-empty text."
+            f"Each {error_label} separated by '|' in {field_name} must contain non-empty text."
         )
     return normalized
 
@@ -81,6 +98,11 @@ def _normalize_text_collection(
 
     for raw_value in values:
         normalized = _normalize_text_value(raw_value, field_name=field_name)
+        normalized = _normalize_or_expression(
+            normalized,
+            field_name=field_name,
+            error_label=field_name[:-1] if field_name.endswith("s") else field_name,
+        )
         dedupe_key = normalized.casefold()
         if dedupe_key in seen:
             continue

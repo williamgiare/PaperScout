@@ -45,6 +45,29 @@ class TextHandlingTests(unittest.TestCase):
 
         self.assertEqual(query.query, '(a:"Linde" and a:"Starobinsky")')
 
+    def test_author_pipe_creates_or_group_inside_single_author(self) -> None:
+        filters = build_search_filters(
+            author=["Linde|Starobinsky", "Guth"],
+        )
+        query = InspireQueryBuilder().build(filters)
+
+        self.assertIn('a:"Linde"', query.query)
+        self.assertIn('a:"Starobinsky"', query.query)
+        self.assertIn('a:"Guth"', query.query)
+        self.assertIn(" and ", query.query)
+        self.assertIn(" or ", query.query)
+
+    def test_author_pipe_expression_is_normalized(self) -> None:
+        filters = build_search_filters(
+            author="  Linde | Starobinsky  ",
+        )
+
+        self.assertEqual(filters.authors, ("Linde | Starobinsky",))
+
+    def test_author_pipe_rejects_empty_alternatives(self) -> None:
+        with self.assertRaises(ValueError):
+            build_search_filters(author="Linde||Starobinsky")
+
     def test_keyword_pipe_creates_or_group_inside_single_keyword(self) -> None:
         filters = build_search_filters(
             keywords=["hubble tension|H_0 tension", "dark energy"],

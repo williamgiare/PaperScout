@@ -57,6 +57,9 @@ Inputs:
   One author name to match in INSPIRE.
   Pass it by repeating the flag once per required author.
   Example: --author Linde --author Starobinsky
+  Different --author flags are combined with AND.
+  Inside a single --author value, use | to express OR alternatives.
+  Example: --author "Linde|Starobinsky"
 
 - --collaboration
   Collaboration name to match in INSPIRE.
@@ -104,7 +107,10 @@ Author behavior:
 - --author can be used alone, or together with keywords and other filters.
 - Repeat --author once per required author.
 - Example: --author Linde --author Starobinsky
-- If multiple authors are given, the paper must contain all of them.
+- Different --author flags are combined with AND.
+- Inside a single --author value, use | to express OR alternatives.
+- Example: --author "Linde|Starobinsky" --author Guth
+- If multiple authors are given, the paper must contain all required author groups.
 - If used with keywords, the search keeps only papers matching all required
   authors and the keywords.
 
@@ -158,7 +164,10 @@ def build_parser(
         "--author",
         action="append",
         default=[],
-        help="Filter by author name.",
+        help=(
+            "Filter by author name. Repeat the flag for AND semantics. "
+            "Use | inside one value for OR alternatives."
+        ),
     )
     parser.add_argument(
         "--collaboration",
