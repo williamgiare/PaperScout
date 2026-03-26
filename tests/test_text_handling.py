@@ -45,6 +45,32 @@ class TextHandlingTests(unittest.TestCase):
 
         self.assertEqual(query.query, '(a:"Linde" and a:"Starobinsky")')
 
+    def test_keyword_pipe_creates_or_group_inside_single_keyword(self) -> None:
+        filters = build_search_filters(
+            keywords=["hubble tension|H_0 tension", "dark energy"],
+        )
+        query = InspireQueryBuilder().build(filters)
+
+        self.assertIn('t:"hubble tension"', query.query)
+        self.assertIn('t:"H_0 tension"', query.query)
+        self.assertIn('t:"dark energy"', query.query)
+        self.assertIn(" and ", query.query)
+        self.assertIn(" or ", query.query)
+
+    def test_keyword_pipe_expression_is_normalized(self) -> None:
+        filters = build_search_filters(
+            keywords=[" can solve the Hubble tension | solution of the Hubble tension "],
+        )
+
+        self.assertEqual(
+            filters.keywords,
+            ("can solve the Hubble tension | solution of the Hubble tension",),
+        )
+
+    def test_keyword_pipe_rejects_empty_alternatives(self) -> None:
+        with self.assertRaises(ValueError):
+            build_search_filters(keywords=["inflation||reheating"])
+
     def test_collaboration_gets_unaccented_fallback(self) -> None:
         filters = build_search_filters(collaboration="Collabòration")
         query = InspireQueryBuilder().build(filters)

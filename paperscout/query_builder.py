@@ -94,6 +94,17 @@ class InspireQueryBuilder:
         keyword: str,
         search_fields: tuple[SearchField, ...],
     ) -> str:
+        alternative_clauses = [
+            self._build_keyword_alternative_clause(alternative, search_fields)
+            for alternative in self._keyword_alternatives(keyword)
+        ]
+        return self._join_clauses(alternative_clauses, operator="or")
+
+    def _build_keyword_alternative_clause(
+        self,
+        keyword: str,
+        search_fields: tuple[SearchField, ...],
+    ) -> str:
         field_clauses = [
             self._build_text_field_clause(search_field, keyword)
             for search_field in search_fields
@@ -186,3 +197,16 @@ class InspireQueryBuilder:
             variants.append(stripped)
 
         return tuple(dict.fromkeys(variants))
+
+    def _keyword_alternatives(self, keyword: str) -> tuple[str, ...]:
+        if "|" not in keyword:
+            return (keyword,)
+
+        alternatives = tuple(
+            alternative.strip()
+            for alternative in keyword.split("|")
+            if alternative.strip()
+        )
+        if not alternatives:
+            raise ValueError("Keyword OR groups cannot be empty.")
+        return alternatives

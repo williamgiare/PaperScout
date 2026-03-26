@@ -75,7 +75,8 @@ At least one primary filter is required:
 ### How The Main Flags Work
 
 - `--keyword`: search a term or phrase across title, abstract, and INSPIRE keywords
-- repeated `--keyword`: combined with logical `AND`, so all given keywords must match
+- repeated `--keyword`: combined with logical `AND`, so all given keyword groups must match
+- `|` inside a single `--keyword`: combined with logical `OR`, so one of the alternatives can match
 - `--author`: require a specific author in the paper metadata
 - repeated `--author`: combined with logical `AND`, so all given authors must be present
 - `--collaboration`: require a specific collaboration name
@@ -96,6 +97,18 @@ paperscout-preview \
 ```
 
 This means: find papers that match both keywords, include the given author, match the collaboration, and fall inside the selected year range.
+
+You can also write OR alternatives inside a single keyword with `|`, for example:
+
+```bash
+paperscout-preview \
+  --keyword "can solve the Hubble tension|solution of the Hubble tension|can solve the H_0 tension"
+```
+
+So the rule is:
+
+- different `--keyword` entries are combined with `AND`
+- alternatives inside one `--keyword` are combined with `OR`
 
 ## Python API
 

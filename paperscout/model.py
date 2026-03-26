@@ -39,6 +39,7 @@ def _normalize_keywords(
 
     for raw_keyword in keywords:
         normalized = _normalize_text_value(raw_keyword, field_name="keyword")
+        normalized = _normalize_keyword_expression(normalized)
         dedupe_key = normalized.casefold()
         if dedupe_key in seen:
             continue
@@ -50,6 +51,23 @@ def _normalize_keywords(
         raise ValueError("At least one keyword is required.")
 
     return tuple(normalized_keywords)
+
+
+def _normalize_keyword_expression(value: str) -> str:
+    if "|" not in value:
+        return value
+
+    normalized_parts = [_normalize_keyword_part(part) for part in value.split("|")]
+    return " | ".join(normalized_parts)
+
+
+def _normalize_keyword_part(value: str) -> str:
+    normalized = normalize("NFC", " ".join(value.split()).strip())
+    if not normalized:
+        raise ValueError(
+            "Each keyword alternative separated by '|' must contain non-empty text."
+        )
+    return normalized
 
 
 def _normalize_text_collection(

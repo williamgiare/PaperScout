@@ -49,6 +49,9 @@ Inputs:
   One search keyword or phrase.
   Pass it by repeating the flag once per keyword.
   Example: --keyword inflation --keyword model
+  Different --keyword flags are combined with AND.
+  Inside a single --keyword value, use | to express OR alternatives.
+  Example: --keyword "hubble tension|H_0 tension"
 
 - --author
   One author name to match in INSPIRE.
@@ -89,6 +92,9 @@ Keyword behavior:
 - Repeat --keyword once per required keyword.
 - Example: --keyword inflation --keyword model
 - This means both keywords are required.
+- Different --keyword flags are combined with AND.
+- Inside a single --keyword value, use | to express OR alternatives.
+- Example: --keyword "hubble tension|H_0 tension|late-time solution"
 - Each keyword is searched in title, abstract, or INSPIRE keywords.
 - Multi-word keywords are allowed: --keyword "effective field theory"
 - Do not separate multiple keywords with commas inside one flag unless you
@@ -143,7 +149,10 @@ def build_parser(
         "--keyword",
         action="append",
         default=[],
-        help="Keyword to require in the search. Repeat the flag for multiple keywords.",
+        help=(
+            "Keyword to require in the search. Repeat the flag for AND semantics. "
+            "Use | inside one value for OR alternatives."
+        ),
     )
     parser.add_argument(
         "--author",
